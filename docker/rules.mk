@@ -67,6 +67,17 @@ docker-images: $(REQUIREMENTS_TXT)
 		--build-arg="TAG=$(DOCKER_TAG)" \
 		-f docker/Dockerfile.dist-worker docker
 
+docker-parsa:
+	docker build -t \
+		$(DOCKER_REGISTRY)pooria55/simbricks-parsa-base$(DOCKER_TAG) \
+		--build-arg="REGISTRY=$(DOCKER_REGISTRY)" \
+		--build-arg="TAG=$(DOCKER_TAG)" \
+		-f docker/Dockerfile.parsaBase .
+	docker build -t \
+		$(DOCKER_REGISTRY)pooria55/simbricks$(DOCKER_TAG) \
+		--build-arg="REGISTRY=$(DOCKER_REGISTRY)" \
+		--build-arg="TAG=$(DOCKER_TAG)" \
+		-f docker/Dockerfile.parsa .
 docker-images-debug:
 	docker build -t \
 		$(DOCKER_REGISTRY)simbricks/simbricks-gem5opt$(DOCKER_TAG) \
