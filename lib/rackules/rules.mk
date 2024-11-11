@@ -22,9 +22,15 @@
 
 include mk/subdir_pre.mk
 
-lib_dir := $(d)
+lib_simbricks := $(lib_dir)libsimbricks.a
 
-$(eval $(call subdir,simbricks))
-$(eval $(call subdir,rackules))
+libsimbricks_objs :=
 
+$(eval $(call subdir,pic))
+
+$(lib_simbricks): $(libsimbricks_objs)
+	$(AR) rcs $@ $(libsimbricks_objs)
+
+CLEAN := $(lib_simbricks)
+ALL := $(lib_simbricks)
 include mk/subdir_post.mk
