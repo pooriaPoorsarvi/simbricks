@@ -1218,6 +1218,8 @@ class QemuCPUNodeHost(CPUNodeWrapper, QemuHost):
         QemuHost.__init__(self, node_config)
 
     def run_cmd(self, env: ExpEnv) -> str:
+        # TODO this if is only for testing purposes, cli should be able to handle this on qemu side
+        # TODO remove this if later on
         if self.far_mem > 0:
             return super().run_cmd(env) + ' \n ' + \
                     f'-far-off-memory {self.far_mem}M'
