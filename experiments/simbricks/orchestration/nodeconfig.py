@@ -109,6 +109,8 @@ class NodeConfig():
         """Application to run on simulated host."""
         self.kcmd_append = ''
         """String to be appended to kernel command line."""
+        
+        self.far_memory_size: int = 0
 
     def config_str(self) -> str:
         if self.sim == 'gem5':

@@ -30,6 +30,7 @@ from simbricks.orchestration import e2e_components as e2e
 from simbricks.orchestration.e2e_topologies import E2ETopology
 from simbricks.orchestration.experiment.experiment_environment import ExpEnv
 from simbricks.orchestration.nodeconfig import NodeConfig
+from simbricks.orchestration.pods import CPUNode, CPUNodeConfig
 
 
 class Simulator(object):
@@ -1196,3 +1197,31 @@ class NetMem(NetMemSim):
         cmd += f' {self.eth_latency}'
 
         return cmd
+
+class CPUNodeWrapper(CPUNode):
+
+    def __init__(self, node_config: NodeConfig):
+        cpu_node_config = CPUNodeConfig(
+            cores=node_config.cores,
+            cpu_type='q35',
+            total_mem=node_config.memory,
+            far_mem=node_config.far_memory_size,
+        )
+        CPUNode.__init__(self, cpu_node_config)
+        
+
+
+class QemuCPUNodeHost(CPUNodeWrapper, QemuHost):
+
+    def __init__(self, node_config: NodeConfig):
+        CPUNodeWrapper.__init__(self, node_config)
+        QemuHost.__init__(self, node_config)
+
+    def run_cmd(self, env: ExpEnv) -> str:
+        if self.far_mem > 0:
+            return super().run_cmd(env) + ' \n ' + \
+                    f'-far-off-memory {self.far_mem}M'
+        else:
+            return super().run_cmd(env)
+
+
