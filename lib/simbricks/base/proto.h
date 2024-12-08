@@ -39,6 +39,7 @@
 #define SIMBRICKS_PROTO_ID_NET 0x01
 #define SIMBRICKS_PROTO_ID_PCIE 0x02
 #define SIMBRICKS_PROTO_ID_MEM 0x03
+#define SIMBRICKS_PROTO_ID_PIC 0x04
 
 /** Listener requests synchronization */
 #define SIMBRICKS_PROTO_FLAGS_LI_SYNC (1 << 0)
