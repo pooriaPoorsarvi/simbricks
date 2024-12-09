@@ -22,8 +22,8 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef SIMBRICKS_MEM_IF_H_
-#define SIMBRICKS_MEM_IF_H_
+#ifndef SIMBRICKS_PIC_IF_H_
+#define SIMBRICKS_PIC_IF_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -44,4 +44,4 @@ SIMBRICKS_BASEIF_GENERIC(SimbricksPicIfS2R, SimbricksProtoPicS2R,
 SIMBRICKS_BASEIF_GENERIC(SimbricksPicIfR2S, SimbricksProtoPicR2S,
                          SimbricksPicIf);
 
-#endif  // SIMBRICKS_MEM_IF_H_
+#endif  // SIMBRICKS_PIC_IF_H_

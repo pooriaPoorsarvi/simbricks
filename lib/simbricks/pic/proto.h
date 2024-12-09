@@ -73,7 +73,7 @@ SIMBRICKS_PROTO_MSG_SZCHECK(struct SimbricksProtoPicR2SWritecomp);
 
 union SimbricksProtoPicR2S {
   union SimbricksProtoBaseMsg base;
-  struct SimbricksProtoPicR2SWritecomp readcomp;
+  struct SimbricksProtoPicR2SReadcomp readcomp;
   struct SimbricksProtoPicR2SWritecomp writecomp;
 } __attribute__((packed));
 SIMBRICKS_PROTO_MSG_SZCHECK(union SimbricksProtoPicR2S);
