@@ -25,9 +25,11 @@ class CPUNode:
         self.total_mem = self.node_config.total_mem
         self.far_mem = self.node_config.far_mem
         if self.far_mem > 0:
-            assert self.far_mem <= self.total_mem
+            # TODO it's a mess that memory is in MB most of the time but not for far_off (simbricks has the same problem) 
+            far_off_mem_in_mb = self.far_mem / (1024*1024)
+            assert far_off_mem_in_mb <= self.total_mem
             # 8GB of memory is reserved for the system more explanation in the qemu project
-            assert self.total_mem - self.far_mem >= 8192
+            assert self.total_mem - far_off_mem_in_mb >= 8192
         print("sat up the cpu node as ", self)
     
     def __str__(self):

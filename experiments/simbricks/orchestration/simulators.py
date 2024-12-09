@@ -399,7 +399,7 @@ class QemuHost(HostSim):
         ]
 
     def run_cmd(self, env: ExpEnv) -> str:
-        accel = ',accel=kvm:tcg' if not self.sync else ''
+        accel = ',accel=kvm:tcg' if not self.sync and self.node_config.should_accelerate else ''
         if self.node_config.kcmd_append:
             kcmd_append = ' ' + self.node_config.kcmd_append
         else:
@@ -443,7 +443,9 @@ class QemuHost(HostSim):
         # qemu does not currently support net direct ports
         assert len(self.net_directs) == 0
         # qemu does not currently support mem device ports
-        assert len(self.memdevs) == 0
+        # TODO see if there are any other things are done for mem devices that have not been taken into account for qemu
+        if self.node_config.far_memory_size == 0:
+            assert len(self.memdevs) == 0
         return cmd
 
 
@@ -1198,6 +1200,8 @@ class NetMem(NetMemSim):
 
         return cmd
 
+
+
 class CPUNodeWrapper(CPUNode):
 
     def __init__(self, node_config: NodeConfig):
@@ -1221,9 +1225,16 @@ class QemuCPUNodeHost(CPUNodeWrapper, QemuHost):
         # TODO this if is only for testing purposes, cli should be able to handle this on qemu side
         # TODO remove this if later on
         if self.far_mem > 0:
-            return super().run_cmd(env) + ' \n ' + \
-                    f'-far-off-memory {self.far_mem}M'
+            assert len(self.memdevs) == 1
+            mem_dev = self.memdevs[0]
+            sync_str = 'false'
+            if mem_dev.sync_mode:
+                sync_str = 'true'
+            # TODO it's a mess that memory is in MB most of the time but not for far_off (simbricks has the same problem) 
+            cmd = super().run_cmd(env) + \
+                    f' -far-off-memory {self.far_mem/(1024 * 1024)}M' + \
+                    f',socket={env.dev_mem_path(mem_dev)},link_latency={mem_dev.mem_latency},sync={sync_str}'
+            print("final cmd is \n", cmd)
+            return cmd
         else:
             return super().run_cmd(env)
-
-

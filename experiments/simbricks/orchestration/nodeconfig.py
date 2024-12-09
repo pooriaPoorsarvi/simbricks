@@ -111,6 +111,7 @@ class NodeConfig():
         """String to be appended to kernel command line."""
         
         self.far_memory_size: int = 0
+        self.should_accelerate: bool = True
 
     def config_str(self) -> str:
         if self.sim == 'gem5':
