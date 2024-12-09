@@ -22,10 +22,7 @@
 
 include mk/subdir_pre.mk
 
-$(eval $(call subdir,basicmem))
-$(eval $(call subdir,memnic))
-$(eval $(call subdir,memswitch))
-$(eval $(call subdir,netmem))
-$(eval $(call subdir,pic))
+$(eval $(call subdir,cpu_pic))
+$(eval $(call subdir,mem_pic))
 
 include mk/subdir_post.mk
