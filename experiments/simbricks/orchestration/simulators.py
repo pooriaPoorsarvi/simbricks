@@ -1148,6 +1148,18 @@ class FEMUDev(PCIDevSim):
 
 class BasicMemDev(MemDevSim):
 
+    def __init__(self) -> None:
+        super().__init__()
+        self.deps = []
+
+    # TODO it's a mess (in general and been here) that there is both deps and pcie, and memdevs are different endpoints, but this will not be used rn 
+    def add_dep(self, dep: Simulator) -> None:
+        self.deps.append(dep)
+
+    def dependencies(self) -> tp.List[Simulator]:
+        return super().dependencies() + self.deps
+    
+
     def run_cmd(self, env: ExpEnv) -> str:
         cmd = (
             f'{env.repodir}/sims/mem/basicmem/basicmem'
