@@ -8,7 +8,7 @@
 
 #include "mem_pic.h"
 
-#define MEM_PIC_DEBUG 1
+#define MEM_PIC_DEBUG 0
 
 typedef __uint128_t uint128_t;
 
@@ -337,6 +337,7 @@ int main(int argc, char *argv[]) {
   signal(SIGUSR1, sigusr1_handler);
 
   if (argc != 9) {
+    // TODO : MEM-socket ? these variables need to be renamed properly
     fprintf(stderr, 
             "Usage: mem_pic [ASID] [MEM-SOCKET] [MEM-LINK-LATENCY] " 
             "[PIC-SOCKET] [PIC-SHM] [PIC-LINK-LATENCY] [SYNC-MODE] [START-TICK] \n");

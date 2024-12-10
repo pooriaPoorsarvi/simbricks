@@ -1238,3 +1238,110 @@ class QemuCPUNodeHost(CPUNodeWrapper, QemuHost):
             return cmd
         else:
             return super().run_cmd(env)
+
+# TODO this inheritance probably needs to change
+class PIC(BasicMemDev):
+    def __init__(self, pci_latency = 5000, start_tick = 0) -> None:
+        self.pci_latency = pci_latency
+        self.start_tick = start_tick
+        super().__init__()
+
+    
+    def get_sync_str(self) -> str:
+        return 'false' if self.sync_mode else 'true'
+
+
+# OLD
+# ./sims/mem/basicmem/basicmem 1073741824 137438953472 0 
+# ../first-steps/out/basicmem-gk/1/dev.mem.host.0.mem0 
+# ../first-steps/out/basicmem-gk/1/dev.shm.host.0.mem0 0 0 500000 500000
+
+# NEW
+# /simbricks/sims/mem/basicmem/basicmem 9672065024 137438953472 0 
+# ../first-steps/out/basicmem-gk/1/dev.mem.host.0.mem0 
+# ../first-steps/out/basicmem-gk/1/dev.shm.host.0.mem0 0 0 500000 500000
+
+# /simbricks/sims/mem/pic/mem_pic/mem_pic 0 
+# ../first-steps/out/basicmem-gk/1/dev.mem.host.0.mem0 500000 
+# ../first-steps/out/basicmem-gk/1/dev.mem.pic.0.pic0 
+# ../first-steps/out/basicmem-gk/1/dev.shm.pic.0.pic0 500000 0 0
+
+# /simbricks/sims/mem/pic/cpu_pic/cpu_pic 0 
+# ../first-steps/out/basicmem-gk/1/dev.mem.host.0.host0 
+# ../first-steps/out/basicmem-gk/1/dev.shm.host.0.host0 500000 
+# ../first-steps/out/basicmem-gk/1/dev.mem.pic.0.pic0 500000 0 0
+
+
+# socket=../first-steps/out/basicmem-gk/1/dev.mem.host.0.host0
+
+class CPUPIC(PIC):
+    # TODO the fact that we are hard coding one CPU PIC to MEM PIC and vice versa is not scalable and need to be changed
+    # TODO right now we are injecting things like the mem_pic in __init__, we need proper setters like add_memdev
+    def __init__(self, node_config: NodeConfig, name: str):
+        super().__init__()
+        self.name = name
+        self.node_config = node_config
+
+    def set_mem_pic(self, mem_pic: MemPIC):
+        self.mem_pic = mem_pic
+
+    def run_cmd(self, env: ExpEnv) -> str | None:
+        
+        # /simbricks/sims/mem/pic/cpu_pic/cpu_pic 0 
+        # ../first-steps/out/basicmem-gk/1/dev.mem.host.0.host0 
+        # ../first-steps/out/basicmem-gk/1/dev.shm.host.0.host0 500000 
+        # ../first-steps/out/basicmem-gk/1/dev.mem.pic.0.pic0 500000 0 0
+        # TODO : this CMD is inconsistent for where SHM comes in, needs to be fixed
+        cmd = (
+            # TODO pic should not be a subfolder of mem
+            f'{env.repodir}/sims/mem/pic/cpu_pic/cpu_pic {self.as_id}'
+            f' {env.dev_mem_path(self)}'
+            f' {env.dev_shm_path(self)} {self.pci_latency} '
+            # TODO do a check and variable renaming because these latancies are all the same so if there is a bug we wouldn't have catched it 
+            f' {env.dev_mem_path(self.mem_pic)} {self.mem_pic.mem_latency} {self.sync_mode} {self.start_tick}'
+        )
+        return cmd
+    
+    def dependencies(self) -> tp.List[Simulator]:
+        # TODO this is good, but need to check if there are other places to add deps
+        # TODO also, not clean to make one PIC , which is a BasicMemDev right now, depend on another PIC, which is a BasicMemDev
+        return super().dependencies() + [self.mem_pic]
+
+    def full_name(self) -> str:
+        return 'pic.cpu.' + self.name
+
+class MemPIC(PIC):
+    # TODO the fact that we are hard coding one CPU PIC to MEM PIC and vice versa is not scalable and need to be changed
+    def __init__(self, node_config: NodeConfig, name: str):
+        super().__init__()
+        self.name = name
+        self.node_config = node_config
+
+    # TODO : assumes only one, needs to be fixed 
+    def set_mem_dev(self, mem_dev: BasicMemDev):
+        self.mem_dev = mem_dev
+
+    
+    def dependencies(self) -> tp.List[Simulator]:
+        # TODO this is good, but need to check if there are other places to add deps
+        # TODO also, not clean to make one PIC , which is a BasicMemDev right now, depend on another BasicMemDev
+        return super().dependencies() + [self.mem_dev]
+
+    def run_cmd(self, env: ExpEnv) -> str | None:
+        
+        # /simbricks/sims/mem/pic/mem_pic/mem_pic 0 
+        # ../first-steps/out/basicmem-gk/1/dev.mem.host.0.mem0 500000 
+        # ../first-steps/out/basicmem-gk/1/dev.mem.pic.0.pic0 
+        # ../first-steps/out/basicmem-gk/1/dev.shm.pic.0.pic0 500000 0 0
+
+        cmd = (
+            f'{env.repodir}/sims/mem/pic/mem_pic/mem_pic {self.as_id}'
+            f' {env.dev_mem_path(self.mem_dev)} {self.mem_dev.mem_latency}'
+            f' {env.dev_mem_path(self)}'
+            # TODO do a check and variable renaming because these latancies are all the same so if there is a bug we wouldn't have catched it 
+            f' {env.dev_shm_path(self)} {self.pci_latency} {self.sync_mode} {self.start_tick}'
+        )
+        return cmd
+    
+    def full_name(self) -> str:
+        return 'pic.mem.' + self.name

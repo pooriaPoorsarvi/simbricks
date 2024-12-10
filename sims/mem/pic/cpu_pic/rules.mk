@@ -10,3 +10,4 @@ CLEAN := $(bin_cpu_pic) $(OBJS)
 ALL := $(bin_cpu_pic)
 
 include mk/subdir_post.mk
+# TODO this needs to move outside of mem folder

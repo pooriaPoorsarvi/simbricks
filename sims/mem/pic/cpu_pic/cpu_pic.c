@@ -8,7 +8,7 @@
 
 #include "cpu_pic.h"
 
-#define CPU_PIC_DEBUG 1
+#define CPU_PIC_DEBUG 0
 
 static int exiting = 0;
 static uint64_t cur_ts = 0;
@@ -21,6 +21,7 @@ static void sigusr1_handler(int dummy) {
   fprintf(stderr, "main_time = %lu\n", cur_ts);
 }
 
+// TODO change this structure to allow for multiple connections, and more flexible strategy of polling
 
 bool PicIfInitConnect(struct SimbricksPicIf *picif, struct SimbricksBaseIfParams *picParams){
 
@@ -322,6 +323,8 @@ int main(int argc, char *argv[]) {
   signal(SIGUSR1, sigusr1_handler);
 
   if (argc != 9) {
+    // TODO : MEM-socket ? these variables need to be renamed properly
+    // TODO : also this takes socket in before SHM which is inconsistent with other dev sims
     fprintf(stderr, 
             "Usage: cpu_pic [ASID] [MEM-SOCKET] [MEM-SHM] [MEM-LINK-LATENCY] " 
             "[PIC-SOCKET] [PIC-LINK-LATENCY] [SYNC-MODE] [START-TICK] \n");
