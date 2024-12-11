@@ -62,18 +62,24 @@ def create_expermient(
     use_pics: bool = True,
     use_far_off_memory: bool = True,
     start_address_gb: int = 11,
+    total_memory_gb: int = 12,
+    far_memory_size_gb: int = 1,
     is_read: bool = True,
 ) -> exp.Experiment:
 
     # Create node
     node_config = nodec.NodeConfig()
     node_config.should_accelerate = False
-    node_config.memory = 12 * 1024
+    node_config.memory = total_memory_gb * 1024
     node_config.nockp = True
     node_config.app = MemTest(
         start_address=start_address_gb,
         is_read=is_read,
     )
+    if use_far_off_memory:
+        # Need to do this if condition first instead of with the rest because it's
+        # used in the host to setup it's CMD. TODO see if we can make this cleaner
+        node_config.far_memory_size = far_memory_size_gb * 1024 * 1024 * 1024
 
     # Create experiment
     e = exp.Experiment(experiment_name)
@@ -91,7 +97,6 @@ def create_expermient(
 
     if use_far_off_memory:
         # Set far memory size
-        node_config.far_memory_size = 1024 * 1024 * 1024
         print("sat far memory size to ", node_config.far_memory_size)
         
         # Create memory device for far memory
