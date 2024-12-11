@@ -1232,29 +1232,48 @@ class QemuCPUNodeHost(CPUNodeWrapper, QemuHost):
     def __init__(self, node_config: NodeConfig):
         CPUNodeWrapper.__init__(self, node_config)
         QemuHost.__init__(self, node_config)
+        self.node_config = node_config
 
     def run_cmd(self, env: ExpEnv) -> str:
         # TODO this if is only for testing purposes, cli should be able to handle this on qemu side
         # TODO remove this if later on
-        if self.far_mem > 0:
-            assert len(self.memdevs) == 1
+
+        cmd = super().run_cmd(env)
+        far_off_base = f' -far-off-memory {int(self.far_mem/(1024 * 1024))}M'
+
+        if self.far_mem > 0 and not self.node_config.only_use_custom_memory:
+            if len(self.memdevs) != 1:
+                raise RuntimeError(
+                    f'Far memory is not supported with multiple memory devices but got {" ".join([str(mem_dev) for mem_dev in self.memdevs])}'
+                )
             mem_dev = self.memdevs[0]
             sync_str = 'false'
             if mem_dev.sync_mode:
                 sync_str = 'true'
             # TODO it's a mess that memory is in MB most of the time but not for far_off (simbricks has the same problem) 
-            cmd = super().run_cmd(env) + \
-                    f' -far-off-memory {self.far_mem/(1024 * 1024)}M' + \
-                    f',socket={env.dev_mem_path(mem_dev)},link_latency={mem_dev.mem_latency},sync={sync_str}'
-            print("final cmd is \n", cmd)
+            
+            cmd += far_off_base
+            cmd += f',socket={env.dev_mem_path(mem_dev)},link_latency={mem_dev.mem_latency},sync={sync_str}'
+
+            return cmd
+        elif self.node_config.only_use_custom_memory:
+            assert len(self.memdevs) == 0
+            cmd += far_off_base
             return cmd
         else:
-            return super().run_cmd(env)
+            return cmd
+
+    def dependencies(self) -> tp.List[PCIDevSim]:
+        parent_deps = super().dependencies()
+        for mem_dev in self.memdevs:
+            if mem_dev not in parent_deps:
+                parent_deps += [mem_dev]
+        return parent_deps
 
 # TODO this inheritance probably needs to change
 class PIC(BasicMemDev):
-    def __init__(self, pci_latency = 5000, start_tick = 0) -> None:
-        self.pci_latency = pci_latency
+    def __init__(self, pic_latency = 500000, start_tick = 0) -> None:
+        self.pic_latency = pic_latency
         self.start_tick = start_tick
         super().__init__()
 
@@ -1308,7 +1327,7 @@ class CPUPIC(PIC):
             # TODO pic should not be a subfolder of mem
             f'{env.repodir}/sims/mem/pic/cpu_pic/cpu_pic {self.as_id}'
             f' {env.dev_mem_path(self)}'
-            f' {env.dev_shm_path(self)} {self.pci_latency} '
+            f' {env.dev_shm_path(self)} {self.pic_latency} '
             # TODO do a check and variable renaming because these latancies are all the same so if there is a bug we wouldn't have catched it 
             f' {env.dev_mem_path(self.mem_pic)} {self.mem_pic.mem_latency} {self.sync_mode} {self.start_tick}'
         )
@@ -1351,7 +1370,7 @@ class MemPIC(PIC):
             f' {env.dev_mem_path(self.mem_dev)} {self.mem_dev.mem_latency}'
             f' {env.dev_mem_path(self)}'
             # TODO do a check and variable renaming because these latancies are all the same so if there is a bug we wouldn't have catched it 
-            f' {env.dev_shm_path(self)} {self.pci_latency} {self.sync_mode} {self.start_tick}'
+            f' {env.dev_shm_path(self)} {self.pic_latency} {self.sync_mode} {self.start_tick}'
         )
         return cmd
     

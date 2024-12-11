@@ -60,12 +60,15 @@ def setup_far_memory_without_pics(
 def create_expermient(
     experiment_name: str,
     use_pics: bool = True,
-    use_far_off_memory: bool = True,
+    use_far_off_memory_through_simbricks: bool = True,
     start_address_gb: int = 11,
     total_memory_gb: int = 12,
     far_memory_size_gb: int = 1,
     is_read: bool = True,
+    only_use_custom_memory: bool = False,
 ) -> exp.Experiment:
+
+
 
     # Create node
     node_config = nodec.NodeConfig()
@@ -76,7 +79,11 @@ def create_expermient(
         start_address=start_address_gb,
         is_read=is_read,
     )
-    if use_far_off_memory:
+    node_config.only_use_custom_memory = only_use_custom_memory
+    
+
+    # TODO This if else is getting a bit messy, should rethink it a bit 
+    if use_far_off_memory_through_simbricks or only_use_custom_memory:
         # Need to do this if condition first instead of with the rest because it's
         # used in the host to setup it's CMD. TODO see if we can make this cleaner
         node_config.far_memory_size = far_memory_size_gb * 1024 * 1024 * 1024
@@ -93,9 +100,17 @@ def create_expermient(
     # Add host to experiment
     e.add_host(host)
     
+    if use_far_off_memory_through_simbricks:
+        assert only_use_custom_memory == False
+
+    if only_use_custom_memory:
+        assert use_far_off_memory_through_simbricks == False
+        # No memory device so just return
+        return e
+    
 
 
-    if use_far_off_memory:
+    if use_far_off_memory_through_simbricks:
         # Set far memory size
         print("sat far memory size to ", node_config.far_memory_size)
         

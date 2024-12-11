@@ -1,58 +1,12 @@
 
 from pyexps.pods.base import create_expermient
+from pyexps.pods.configurable_pod_2_node import experiments as configurable_pod_2_node_experiments
+from pyexps.pods.configurable_pod_4_node import experiments as configurable_pod_4_node_experiments
+from pyexps.pods.direct_access import experiments as direct_access_experiments
+from pyexps.pods.direct_without_fast_path import experiments as direct_without_fast_path_experiments
 
-experiments = [
-    create_expermient(
-        'configurable_pod_2_node_read',
-        use_pics=False,
-        use_far_off_memory_through_simbricks=True,
-        start_address_gb=12,
-        far_memory_size_gb=4,
-        total_memory_gb=16,
-    ),
-    create_expermient(
-        'configurable_pod_4_node_read',
-        use_pics=True,
-        use_far_off_memory_through_simbricks=True,
-        start_address_gb=12,
-        far_memory_size_gb=4,
-        total_memory_gb=16,
-    ),
-    create_expermient(
-        'direct_access_memory_read',
-        use_pics=False,
-        use_far_off_memory_through_simbricks=False,
-        start_address_gb=12,
-        far_memory_size_gb=4,
-        total_memory_gb=16,
-    ),
-
-
-    create_expermient(
-        'configurable_pod_2_node_write',
-        use_pics=False,
-        use_far_off_memory_through_simbricks=True,
-        start_address_gb=12,
-        far_memory_size_gb=4,
-        total_memory_gb=16,
-        is_read=False,
-    ),
-    create_expermient(
-        'configurable_pod_4_node_write',
-        use_pics=True,
-        use_far_off_memory_through_simbricks=True,
-        start_address_gb=12,
-        far_memory_size_gb=4,
-        total_memory_gb=16,
-        is_read=False,
-    ),
-    create_expermient(
-        'direct_access_memory_write',
-        use_pics=False,
-        use_far_off_memory_through_simbricks=False,
-        start_address_gb=12,
-        far_memory_size_gb=4,
-        total_memory_gb=16,
-        is_read=False,
-    )
-]
+experiments = []
+experiments += configurable_pod_2_node_experiments
+experiments += configurable_pod_4_node_experiments
+experiments += direct_access_experiments
+experiments += direct_without_fast_path_experiments
