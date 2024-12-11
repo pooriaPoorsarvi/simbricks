@@ -9,18 +9,35 @@ from simbricks.orchestration.simulators import QemuCPUNodeHost, CPUPIC, MemPIC
 class MemTest(nodec.AppConfig):
 
     def __init__(self, 
+                 total_memory_gb: int,
                  start_address: int,
                  is_read: bool = True,
+                 is_one_dd: bool = False,
+                 on_dd_size_kb: int = 1,
                 ):
         self.start_address = start_address
         self.is_read = is_read
+        self.total_memory_gb = total_memory_gb
+        self.is_one_dd = is_one_dd
+        self.on_dd_size_kb = on_dd_size_kb
 
     def run_cmds(self, node):
         main_command = ''
-        if self.is_read:
-            main_command = f'dd if=/dev/mem bs=1G skip={int(self.start_address)} count=1 status=progress | xxd | less'
+        if self.is_one_dd:
+            # since bs is in 1G, the address difference is the count
+            count = int(self.total_memory_gb - self.start_address)
+            bs='1G'
+            start_address = int(self.start_address)
         else:
-            main_command = f'dd if=/dev/zero of=/dev/mem bs=1G seek={int(self.start_address)} count=1 status=progress'
+            count = 1
+            bs=f'{self.on_dd_size_kb}K'
+            # start address will bi the same, but since it's done through skips, we need to convert
+            start_address = int((self.start_address * 1024 * 1024)/self.on_dd_size_kb)
+
+        if self.is_read:
+            main_command = f'dd if=/dev/mem bs={bs} skip={start_address} count={count} status=progress | xxd | less'
+        else:
+            main_command = f'dd if=/dev/zero of=/dev/mem bs={bs} seek={start_address} count={count} status=progress'
         return [
             f'START=$(date +%s%3N)',
             main_command,
@@ -66,6 +83,8 @@ def create_expermient(
     far_memory_size_gb: int = 1,
     is_read: bool = True,
     only_use_custom_memory: bool = False,
+    is_one_dd: bool = False,
+    on_dd_size_kb: int = 1,
 ) -> exp.Experiment:
 
     # create proper experiment name
@@ -77,8 +96,11 @@ def create_expermient(
     node_config.memory = total_memory_gb * 1024
     node_config.nockp = True
     node_config.app = MemTest(
+        total_memory_gb=total_memory_gb,
         start_address=start_address_gb,
         is_read=is_read,
+        is_one_dd=is_one_dd,
+        on_dd_size_kb=on_dd_size_kb,
     )
     node_config.only_use_custom_memory = only_use_custom_memory
     
