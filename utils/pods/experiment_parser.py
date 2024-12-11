@@ -42,7 +42,7 @@ for filename in os.listdir(input_directory):
                 if elapsed_time is not None:
                     # Append the extracted information
                     data.append({
-                        "Experiment Name": exp_name,
+                        "Experiment Name": exp_name.replace("_read", "").replace("_write", ""),
                         "Mode": mode,
                         "Elapsed Time (ms)": elapsed_time
                     })
