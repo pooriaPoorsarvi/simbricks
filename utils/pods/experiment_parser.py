@@ -4,7 +4,7 @@ import pandas as pd
 
 # Path to the directory containing the JSON files
 input_directory = "../../out"  # Adjust the directory path as needed
-output_file = "results.csv"
+output_file = "pods/gathered_data/results.csv"
 
 # Initialize a list to store extracted data
 data = []
