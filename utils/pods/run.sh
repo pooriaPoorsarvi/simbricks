@@ -2,7 +2,7 @@ cd ../../
 
 rm -r out
 
-simbricks-run experiments/pyexps/pods/all_memory_configs.py --runs 20 --force 
+simbricks-run experiments/pyexps/pods/all_memory_configs.py --runs 1 --force 
 
 cd utils/pods
 
