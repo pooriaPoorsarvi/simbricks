@@ -68,7 +68,8 @@ def create_expermient(
     only_use_custom_memory: bool = False,
 ) -> exp.Experiment:
 
-
+    # create proper experiment name
+    experiment_name = f'{experiment_name}_{total_memory_gb-start_address_gb}G_{"read" if is_read else "write"}'
 
     # Create node
     node_config = nodec.NodeConfig()
