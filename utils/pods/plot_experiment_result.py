@@ -2,7 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # Input CSV file
-input_file = "pods/gathered_data/results.csv"
+input_file = "gathered_data/results.csv"
 
 # Load the data from the CSV file
 df = pd.read_csv(input_file)
@@ -24,7 +24,7 @@ plt.ylabel("Elapsed Time (ms)")
 plt.xticks(rotation=45)
 plt.legend()  # Add legend
 plt.tight_layout()
-plt.savefig("pods/gathered_data/read_configurations.png")
+plt.savefig("gathered_data/read_configurations.png")
 plt.show()
 
 # Set up bar plot for WRITE mode
@@ -36,7 +36,7 @@ plt.ylabel("Elapsed Time (ms)")
 plt.xticks(rotation=45)
 plt.legend()  # Add legend
 plt.tight_layout()
-plt.savefig("pods/gathered_data/write_configurations.png")
+plt.savefig("gathered_data/write_configurations.png")
 plt.show()
 
 # Combined comparison of READ and WRITE for all configurations
@@ -51,5 +51,5 @@ plt.ylabel("Elapsed Time (ms)")
 plt.xticks(rotation=45)
 plt.legend(title="Mode")  # Add legend for combined plot
 plt.tight_layout()
-plt.savefig("pods/gathered_data/combined_comparison.png")
+plt.savefig("gathered_data/combined_comparison.png")
 plt.show()

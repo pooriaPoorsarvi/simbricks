@@ -13,26 +13,26 @@ class MemTest(nodec.AppConfig):
                  start_address: int,
                  is_read: bool = True,
                  is_one_dd: bool = False,
-                 on_dd_size_kb: int = 1,
+                 on_dd_size_mb: int = 1,
                 ):
         self.start_address = start_address
         self.is_read = is_read
         self.total_memory_gb = total_memory_gb
         self.is_one_dd = is_one_dd
-        self.on_dd_size_kb = on_dd_size_kb
+        self.on_dd_size_kb = on_dd_size_mb
 
     def run_cmds(self, node):
         main_command = ''
-        if self.is_one_dd:
+        if not self.is_one_dd:
             # since bs is in 1G, the address difference is the count
             count = int(self.total_memory_gb - self.start_address)
             bs='1G'
             start_address = int(self.start_address)
         else:
             count = 1
-            bs=f'{self.on_dd_size_kb}K'
+            bs=f'{self.on_dd_size_kb}M'
             # start address will bi the same, but since it's done through skips, we need to convert
-            start_address = int((self.start_address * 1024 * 1024)/self.on_dd_size_kb)
+            start_address = int((self.start_address * 1024 )/self.on_dd_size_kb)
 
         if self.is_read:
             main_command = f'dd if=/dev/mem bs={bs} skip={start_address} count={count} status=progress | xxd | less'
@@ -84,11 +84,12 @@ def create_expermient(
     is_read: bool = True,
     only_use_custom_memory: bool = False,
     is_one_dd: bool = False,
-    on_dd_size_kb: int = 1,
+    on_dd_size_mb: int = 1,
 ) -> exp.Experiment:
 
     # create proper experiment name
-    experiment_name = f'{experiment_name}_{total_memory_gb-start_address_gb}G_{"read" if is_read else "write"}'
+    access_size = "1G" if not is_one_dd else f"{on_dd_size_mb}M"
+    experiment_name = f'{experiment_name}_{total_memory_gb-start_address_gb}G_{access_size}_{"read" if is_read else "write"}'
 
     # Create node
     node_config = nodec.NodeConfig()
@@ -100,7 +101,7 @@ def create_expermient(
         start_address=start_address_gb,
         is_read=is_read,
         is_one_dd=is_one_dd,
-        on_dd_size_kb=on_dd_size_kb,
+        on_dd_size_mb=on_dd_size_mb,
     )
     node_config.only_use_custom_memory = only_use_custom_memory
     
