@@ -19,7 +19,7 @@ class MemTest(nodec.AppConfig):
         self.is_read = is_read
         self.total_memory_gb = total_memory_gb
         self.is_one_dd = is_one_dd
-        self.on_dd_size_kb = on_dd_size_mb
+        self.on_dd_size_mb = on_dd_size_mb
 
     def run_cmds(self, node):
         main_command = ''
@@ -30,9 +30,9 @@ class MemTest(nodec.AppConfig):
             start_address = int(self.start_address)
         else:
             count = 1
-            bs=f'{self.on_dd_size_kb}M'
+            bs=f'{self.on_dd_size_mb}M'
             # start address will bi the same, but since it's done through skips, we need to convert
-            start_address = int((self.start_address * 1024 )/self.on_dd_size_kb)
+            start_address = int((self.start_address * 1024 )/self.on_dd_size_mb)
 
         if self.is_read:
             main_command = f'dd if=/dev/mem bs={bs} skip={start_address} count={count} status=progress | xxd | less'
@@ -105,6 +105,8 @@ def create_expermient(
     )
     node_config.only_use_custom_memory = only_use_custom_memory
     
+    if is_one_dd:
+        assert int(on_dd_size_mb/1024)  <=  ( total_memory_gb - start_address_gb)
 
     # TODO This if else is getting a bit messy, should rethink it a bit 
     if use_far_off_memory_through_simbricks or only_use_custom_memory:
