@@ -3,7 +3,7 @@ from pyexps.pods.base import create_expermient
 
 experiments = []
 
-base_scale_mb = 1
+base_scale_mb = 8
 
 for i in range(4):
     multiplier = 2 ** i

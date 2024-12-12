@@ -1,5 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+from natsort import natsorted
 
 # Input CSV file
 input_file = "gathered_data/results.csv"
@@ -15,6 +16,7 @@ write_data = df[df["Mode"] == "write"]
 read_data = read_data.groupby("Experiment Name")["Elapsed Time (ms)"].mean().reset_index()
 write_data = write_data.groupby("Experiment Name")["Elapsed Time (ms)"].mean().reset_index()
 
+read_data = read_data.set_index("Experiment Name").reindex(index=natsorted(read_data["Experiment Name"])).reset_index()
 # Set up bar plot for READ mode
 plt.figure(figsize=(10, 6))
 plt.bar(read_data["Experiment Name"], read_data["Elapsed Time (ms)"], label="Read Mode", color="skyblue")
@@ -27,6 +29,7 @@ plt.tight_layout()
 plt.savefig("gathered_data/read_configurations.png")
 plt.show()
 
+write_data = write_data.set_index("Experiment Name").reindex(index=natsorted(write_data["Experiment Name"])).reset_index()
 # Set up bar plot for WRITE mode
 plt.figure(figsize=(10, 6))
 plt.bar(write_data["Experiment Name"], write_data["Elapsed Time (ms)"], label="Write Mode", color="lightcoral")
@@ -42,6 +45,7 @@ plt.show()
 # Combined comparison of READ and WRITE for all configurations
 combined_data = df.groupby(["Experiment Name", "Mode"])["Elapsed Time (ms)"].mean().reset_index()
 pivot_data = combined_data.pivot(index="Experiment Name", columns="Mode", values="Elapsed Time (ms)")
+pivot_data = pivot_data.reindex(index=natsorted(pivot_data.index))
 
 # Plot combined bar chart
 pivot_data.plot(kind="bar", figsize=(10, 6), color={"read": "skyblue", "write": "lightcoral"})
