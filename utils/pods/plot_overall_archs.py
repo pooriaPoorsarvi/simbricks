@@ -4,7 +4,17 @@ from natsort import natsorted
 import seaborn as sns
 
 sns.set_context("notebook", font_scale=1.2)
-plt.rcParams['axes.labelsize'] = 14
+sns.set(rc={'figure.figsize':(10,10)})
+font = {'family' : 'normal',
+        'weight' : 'bold',
+        'size'   : 22}
+
+plt.rc('font', **font)
+
+plt.rcParams['axes.labelsize'] = 22
+plt.rcParams['axes.titlesize'] = 22
+plt.rcParams['xtick.labelsize'] = 20  # Also increase tick label size
+plt.rcParams['ytick.labelsize'] = 20
 
 # Input CSV file
 input_file = "gathered_data/results.csv"
@@ -61,10 +71,10 @@ df["Final Name"] = df["Experiment Name"].apply(lambda x: name_mapping(x))
 
 # Combined comparison of READ and WRITE for all configurations
 # Do the same plots for read and write
-plt.figure(figsize=(10, 6))
+plt.figure(figsize=(10, 10))
 sns.barplot(data=df, x='Final Name', y='Elapsed Time (ms)', hue='Mode', palette=['red', 'blue'], hue_order=["read", "write"])
 
-plt.title("Comparison of READ and WRITE Configurations doing 1GB operations")
+plt.title("1GB operations Performace")
 plt.xlabel("Experiment")
 plt.ylabel("Elapsed Time (ms)")
 plt.xticks(rotation=45)
