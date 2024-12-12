@@ -3,6 +3,9 @@ import matplotlib.pyplot as plt
 from natsort import natsorted
 import seaborn as sns
 
+sns.set_context("notebook", font_scale=1.2)
+plt.rcParams['axes.labelsize'] = 14
+
 # Input CSV file
 input_file = "gathered_data/results.csv"
 
@@ -32,6 +35,9 @@ sns.scatterplot(data=df, x="opSize", y="Elapsed Time (ms)",
 
 plt.xlabel("Operation Size (MB)")
 plt.ylabel("Elapsed Time (ms)")
+# Label plot
+plt.title("Operation time vs. Operation size")
+
 plt.legend(title="Mode")
 
 plt.savefig("gathered_data/rw_scale.png")

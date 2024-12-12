@@ -3,6 +3,9 @@ import matplotlib.pyplot as plt
 from natsort import natsorted
 import seaborn as sns
 
+sns.set_context("notebook", font_scale=1.2)
+plt.rcParams['axes.labelsize'] = 14
+
 # Input CSV file
 input_file = "gathered_data/results.csv"
 
@@ -61,7 +64,7 @@ df["Final Name"] = df["Experiment Name"].apply(lambda x: name_mapping(x))
 plt.figure(figsize=(10, 6))
 sns.barplot(data=df, x='Final Name', y='Elapsed Time (ms)', hue='Mode', palette=['red', 'blue'], hue_order=["read", "write"])
 
-plt.title("Comparison of READ and WRITE Configurations")
+plt.title("Comparison of READ and WRITE Configurations doing 1GB operations")
 plt.xlabel("Experiment")
 plt.ylabel("Elapsed Time (ms)")
 plt.xticks(rotation=45)
