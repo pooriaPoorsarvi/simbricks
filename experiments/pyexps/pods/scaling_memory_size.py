@@ -3,6 +3,8 @@ from pyexps.pods.base import create_expermient
 
 experiments = []
 
+base_scale_mb = 1
+
 for i in range(4):
     multiplier = 2 ** i
 
@@ -15,7 +17,7 @@ for i in range(4):
             far_memory_size_gb=4,
             total_memory_gb=16,
             is_one_dd=True,
-            on_dd_size_mb=128 * multiplier
+            on_dd_size_mb=base_scale_mb * multiplier
         ),
         create_expermient(
             'node_scale',
@@ -26,6 +28,6 @@ for i in range(4):
             total_memory_gb=16,
             is_read=False,
             is_one_dd=True,
-            on_dd_size_mb=128*multiplier
+            on_dd_size_mb=base_scale_mb * multiplier
         ),
     ]
