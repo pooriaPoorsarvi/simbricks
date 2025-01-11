@@ -5,16 +5,23 @@ import seaborn as sns
 
 sns.set_context("notebook", font_scale=1.2)
 sns.set(rc={'figure.figsize':(10,10)})
-font = {'family' : 'normal',
-        'weight' : 'bold',
+font = {'weight' : 'bold',
         'size'   : 22}
 
 plt.rc('font', **font)
 
-plt.rcParams['axes.labelsize'] = 22
-plt.rcParams['axes.titlesize'] = 22
-plt.rcParams['xtick.labelsize'] = 20  # Also increase tick label size
-plt.rcParams['ytick.labelsize'] = 20
+plt.rcParams['axes.labelsize'] = 24
+plt.rcParams['axes.titlesize'] = 24
+plt.rcParams['xtick.labelsize'] = 24  # Also increase tick label size
+plt.rcParams['ytick.labelsize'] = 24
+# Make all x and y labels bold
+plt.rcParams['axes.labelweight'] = 'bold'
+
+# Make title bold
+plt.rcParams['axes.titleweight'] = 'bold'
+
+# Make legend bigger
+plt.rcParams['legend.fontsize'] = 20
 
 # Input CSV file
 input_file = "gathered_data/results.csv"
@@ -74,7 +81,11 @@ df["Final Name"] = df["Experiment Name"].apply(lambda x: name_mapping(x))
 plt.figure(figsize=(10, 10))
 sns.barplot(data=df, x='Final Name', y='Elapsed Time (ms)', hue='Mode', palette=['red', 'blue'], hue_order=["read", "write"])
 
-plt.title("1GB operations Performace")
+# Turn the y-axs into log scale
+plt.yscale("log")
+
+
+plt.title("1GB Operations Performance")
 plt.xlabel("Experiment")
 plt.ylabel("Elapsed Time (ms)")
 plt.xticks(rotation=45)

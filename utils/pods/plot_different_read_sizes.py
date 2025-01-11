@@ -6,16 +6,25 @@ import seaborn as sns
 
 sns.set_context("notebook", font_scale=1.2)
 sns.set(rc={'figure.figsize':(10,10)})
-font = {'family' : 'normal',
-        'weight' : 'bold',
+font = {'weight' : 'bold',
         'size'   : 22}
 
 plt.rc('font', **font)
 
-plt.rcParams['axes.labelsize'] = 22
-plt.rcParams['axes.titlesize'] = 22
-plt.rcParams['xtick.labelsize'] = 20  # Also increase tick label size
-plt.rcParams['ytick.labelsize'] = 20
+plt.rcParams['axes.labelsize'] = 24
+plt.rcParams['axes.titlesize'] = 24
+plt.rcParams['xtick.labelsize'] = 24  # Also increase tick label size
+plt.rcParams['ytick.labelsize'] = 24
+
+
+# Make legend bigger
+plt.rcParams['legend.fontsize'] = 20
+
+# Make all x and y labels bold
+plt.rcParams['axes.labelweight'] = 'bold'
+
+# Make title bold
+plt.rcParams['axes.titleweight'] = 'bold'
 
 # Input CSV file
 input_file = "gathered_data/results.csv"
@@ -49,6 +58,9 @@ plt.ylabel("Elapsed Time (ms)")
 # Label plot
 plt.title("Operation time vs. Operation size")
 plt.tight_layout()
+
+# # Turn the y-axs into log scale
+# plt.yscale("log")
 
 plt.legend(title="Mode")
 
