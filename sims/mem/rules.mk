@@ -19,6 +19,8 @@
 # CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#
+# Modified by Sidharth Sundar and Pooria Poorsarvi Tehrani
 
 include mk/subdir_pre.mk
 
@@ -26,5 +28,6 @@ $(eval $(call subdir,basicmem))
 $(eval $(call subdir,memnic))
 $(eval $(call subdir,memswitch))
 $(eval $(call subdir,netmem))
+$(eval $(call subdir,pic))
 
 include mk/subdir_post.mk

@@ -109,6 +109,14 @@ class NodeConfig():
         """Application to run on simulated host."""
         self.kcmd_append = ''
         """String to be appended to kernel command line."""
+        
+        self.far_memory_size: int = 0
+        """Size of far memory in bytes."""
+        # TODO move this to our own class I think
+        self.only_use_custom_memory: bool = False
+        """Whether to only use custom memory without using simbricks to communicate."""
+        self.should_accelerate: bool = True
+        """Whether or not to use KVM."""
 
     def config_str(self) -> str:
         if self.sim == 'gem5':

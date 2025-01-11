@@ -94,7 +94,7 @@ class Experiment(object):
     def add_memdev(self, sim: simulators.MemDevSim):
         for d in self.memdevs:
             if d.name == sim.name:
-                raise ValueError('Duplicate memdev name')
+                raise ValueError(f'Duplicate memdev name')
         self.memdevs.append(sim)
 
     def add_netmem(self, sim: simulators.NetMemSim):

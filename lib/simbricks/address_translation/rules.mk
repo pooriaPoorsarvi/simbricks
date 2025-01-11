@@ -1,4 +1,4 @@
-# Copyright 2021 Max Planck Institute for Software Systems, and
+# Copyright 2022 Max Planck Institute for Software Systems, and
 # National University of Singapore
 #
 # Permission is hereby granted, free of charge, to any person obtaining
@@ -19,27 +19,16 @@
 # CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#
-# Modified by Sidharth Sundar and Pooria Poorsarvi Tehrani
 
 include mk/subdir_pre.mk
 
-lib_simbricks := $(lib_dir)libsimbricks.a
+lib_address_translation := $(d)libaddress_translation.a
 
-libsimbricks_objs :=
+OBJS := $(addprefix $(d),address_translation.o)
 
-$(eval $(call subdir,address_translation))
-$(eval $(call subdir,base))
-$(eval $(call subdir,mem))
-$(eval $(call subdir,network))
-$(eval $(call subdir,pcie))
-$(eval $(call subdir,nicif))
-$(eval $(call subdir,nicbm))
-$(eval $(call subdir,pic))
+libsimbricks_objs += $(OBJS)
 
-$(lib_simbricks): $(libsimbricks_objs)
-	$(AR) rcs $@ $(libsimbricks_objs)
+$(lib_address_translation): $(OBJS)
 
-CLEAN := $(lib_simbricks)
-ALL := $(lib_simbricks)
+CLEAN := $(lib_address_translation) $(OBJS)
 include mk/subdir_post.mk
