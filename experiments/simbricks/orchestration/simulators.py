@@ -1239,6 +1239,7 @@ class QemuCPUNodeHost(CPUNodeWrapper, QemuHost):
         # TODO remove this if later on
 
         cmd = super().run_cmd(env)
+        cmd += ' -plugin /simbricks/sims/external/qemu/build/contrib/plugins/libhotblocks.so '
         far_off_base = f' -far-off-memory {int(self.far_mem/(1024 * 1024))}M'
 
         if self.far_mem > 0 and not self.node_config.only_use_custom_memory:
