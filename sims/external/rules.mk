@@ -62,8 +62,9 @@ $(d)qemu/ready: $(d)qemu
 	    --extra-cflags="-I$(abspath $(lib_dir))" \
 	    --extra-ldflags="-L$(abspath $(lib_dir))" \
 	    --enable-simbricks \
+		--enable-plugins \
 	    --enable-simbricks-pci && \
-	  $(MAKE)
+	  $(MAKE) && $(MAKE) -C build/contrib/plugins
 	touch $@
 
 $(QEMUG_IMG): $(d)qemu/ready

@@ -20,6 +20,8 @@
  * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
  * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * 
+ * Modified by Sidharth Sundar and Pooria Poorsarvi Tehrani
  */
 
 #include <fcntl.h>
@@ -56,7 +58,7 @@ bool MemifInit(struct SimbricksMemIf *memif, const char *shm_path,
   memset(&pool_, 0, sizeof(pool_));
 
   struct SimBricksBaseIfEstablishData ests[1];
-  struct SimbricksProtoMemHostIntro m_intro;
+  struct SimbricksProtoMemMemIntro m_intro;
   struct SimbricksProtoMemHostIntro h_intro;
   unsigned n_bifs = 0;
 
@@ -152,7 +154,7 @@ void PollH2M(struct SimbricksMemIf *memif, uint64_t cur_ts) {
 
 #if BASICMEM_DEBUG
       printf("received H2M write addr: 0x%lx size: %d\n", addr, msg->write.len);
-      for (i = 0; i < (int)len; i++) {
+      for (int i = 0; i < (int)len; i++) {
         printf("%X ", msg->write.data[i]);
       }
       printf("\n");
@@ -166,7 +168,7 @@ void PollH2M(struct SimbricksMemIf *memif, uint64_t cur_ts) {
 #if BASICMEM_DEBUG
       printf("received H2M posted write addr: 0x%lx size: %d\n", addr,
              msg->write.len);
-      for (i = 0; i < (int)len; i++) {
+      for (int i = 0; i < (int)len; i++) {
         printf("%X ", msg->write.data[i]);
       }
       printf("\n");
@@ -225,10 +227,6 @@ int main(int argc, char *argv[]) {
 
   printf("start polling\n");
   while (!exiting) {
-    while (SimbricksMemIfM2HOutSync(&memif, cur_ts)) {
-      fprintf(stderr, "warn: SimbricksMemIfSync failed (t=%lu)\n", cur_ts);
-    }
-
     do {
       PollH2M(&memif, cur_ts);
 

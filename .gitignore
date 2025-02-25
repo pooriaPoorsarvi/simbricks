@@ -1,3 +1,5 @@
+out/
+
 *.o
 *.d
 *.a
@@ -11,6 +13,8 @@ sims/mem/basicmem/basicmem
 sims/mem/memnic/memnic
 sims/mem/memswitch/memswitch
 sims/mem/netmem/netmem
+sims/mem/pic/cpu_pic/cpu_pic
+sims/mem/pic/mem_pic/mem_pic
 sims/nic/corundum/corundum_verilator
 sims/nic/corundum/obj_dir
 sims/nic/e1000_gem5/e1000_gem5

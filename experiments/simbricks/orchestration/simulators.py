@@ -30,6 +30,7 @@ from simbricks.orchestration import e2e_components as e2e
 from simbricks.orchestration.e2e_topologies import E2ETopology
 from simbricks.orchestration.experiment.experiment_environment import ExpEnv
 from simbricks.orchestration.nodeconfig import NodeConfig
+from simbricks.orchestration.pods import CPUNode, CPUNodeConfig
 
 
 class Simulator(object):
@@ -398,7 +399,7 @@ class QemuHost(HostSim):
         ]
 
     def run_cmd(self, env: ExpEnv) -> str:
-        accel = ',accel=kvm:tcg' if not self.sync else ''
+        accel = ',accel=kvm:tcg' if not self.sync and self.node_config.should_accelerate else ''
         if self.node_config.kcmd_append:
             kcmd_append = ' ' + self.node_config.kcmd_append
         else:
@@ -442,7 +443,9 @@ class QemuHost(HostSim):
         # qemu does not currently support net direct ports
         assert len(self.net_directs) == 0
         # qemu does not currently support mem device ports
-        assert len(self.memdevs) == 0
+        # TODO see if there are any other things are done for mem devices that have not been taken into account for qemu
+        if self.node_config.far_memory_size == 0:
+            assert len(self.memdevs) == 0
         return cmd
 
 
@@ -1145,6 +1148,18 @@ class FEMUDev(PCIDevSim):
 
 class BasicMemDev(MemDevSim):
 
+    def __init__(self) -> None:
+        super().__init__()
+        self.deps = []
+
+    # TODO it's a mess (in general and been here) that there is both deps and pcie, and memdevs are different endpoints, but this will not be used rn 
+    def add_dep(self, dep: Simulator) -> None:
+        self.deps.append(dep)
+
+    def dependencies(self) -> tp.List[Simulator]:
+        return super().dependencies() + self.deps
+    
+
     def run_cmd(self, env: ExpEnv) -> str:
         cmd = (
             f'{env.repodir}/sims/mem/basicmem/basicmem'
@@ -1196,3 +1211,169 @@ class NetMem(NetMemSim):
         cmd += f' {self.eth_latency}'
 
         return cmd
+
+
+
+class CPUNodeWrapper(CPUNode):
+
+    def __init__(self, node_config: NodeConfig):
+        cpu_node_config = CPUNodeConfig(
+            cores=node_config.cores,
+            cpu_type='q35',
+            total_mem=node_config.memory,
+            far_mem=node_config.far_memory_size,
+        )
+        CPUNode.__init__(self, cpu_node_config)
+        
+
+
+class QemuCPUNodeHost(CPUNodeWrapper, QemuHost):
+
+    def __init__(self, node_config: NodeConfig):
+        CPUNodeWrapper.__init__(self, node_config)
+        QemuHost.__init__(self, node_config)
+        self.node_config = node_config
+
+    def run_cmd(self, env: ExpEnv) -> str:
+        # TODO this if is only for testing purposes, cli should be able to handle this on qemu side
+        # TODO remove this if later on
+
+        cmd = super().run_cmd(env)
+        cmd += ' -plugin /simbricks/sims/external/qemu/build/contrib/plugins/libhotblocks.so '
+        far_off_base = f' -far-off-memory {int(self.far_mem/(1024 * 1024))}M'
+
+        if self.far_mem > 0 and not self.node_config.only_use_custom_memory:
+            if len(self.memdevs) != 1:
+                raise RuntimeError(
+                    f'Far memory is not supported with multiple memory devices but got {" ".join([str(mem_dev) for mem_dev in self.memdevs])}'
+                )
+            mem_dev = self.memdevs[0]
+            sync_str = 'false'
+            if mem_dev.sync_mode:
+                sync_str = 'true'
+            # TODO it's a mess that memory is in MB most of the time but not for far_off (simbricks has the same problem) 
+            
+            cmd += far_off_base
+            cmd += f',socket={env.dev_mem_path(mem_dev)},link_latency={mem_dev.mem_latency},sync={sync_str}'
+
+            return cmd
+        elif self.node_config.only_use_custom_memory:
+            assert len(self.memdevs) == 0
+            cmd += far_off_base
+            return cmd
+        else:
+            return cmd
+
+    def dependencies(self) -> tp.List[PCIDevSim]:
+        parent_deps = super().dependencies()
+        for mem_dev in self.memdevs:
+            if mem_dev not in parent_deps:
+                parent_deps += [mem_dev]
+        return parent_deps
+
+# TODO this inheritance probably needs to change
+class PIC(BasicMemDev):
+    def __init__(self, pic_latency = 500000, start_tick = 0) -> None:
+        self.pic_latency = pic_latency
+        self.start_tick = start_tick
+        super().__init__()
+
+    
+    def get_sync_str(self) -> str:
+        return 'false' if self.sync_mode else 'true'
+
+
+# OLD
+# ./sims/mem/basicmem/basicmem 1073741824 137438953472 0 
+# ../first-steps/out/basicmem-gk/1/dev.mem.host.0.mem0 
+# ../first-steps/out/basicmem-gk/1/dev.shm.host.0.mem0 0 0 500000 500000
+
+# NEW
+# /simbricks/sims/mem/basicmem/basicmem 9672065024 137438953472 0 
+# ../first-steps/out/basicmem-gk/1/dev.mem.host.0.mem0 
+# ../first-steps/out/basicmem-gk/1/dev.shm.host.0.mem0 0 0 500000 500000
+
+# /simbricks/sims/mem/pic/mem_pic/mem_pic 0 
+# ../first-steps/out/basicmem-gk/1/dev.mem.host.0.mem0 500000 
+# ../first-steps/out/basicmem-gk/1/dev.mem.pic.0.pic0 
+# ../first-steps/out/basicmem-gk/1/dev.shm.pic.0.pic0 500000 0 0
+
+# /simbricks/sims/mem/pic/cpu_pic/cpu_pic 0 
+# ../first-steps/out/basicmem-gk/1/dev.mem.host.0.host0 
+# ../first-steps/out/basicmem-gk/1/dev.shm.host.0.host0 500000 
+# ../first-steps/out/basicmem-gk/1/dev.mem.pic.0.pic0 500000 0 0
+
+
+# socket=../first-steps/out/basicmem-gk/1/dev.mem.host.0.host0
+
+class CPUPIC(PIC):
+    # TODO the fact that we are hard coding one CPU PIC to MEM PIC and vice versa is not scalable and need to be changed
+    # TODO right now we are injecting things like the mem_pic in __init__, we need proper setters like add_memdev
+    def __init__(self, node_config: NodeConfig, name: str):
+        super().__init__()
+        self.name = name
+        self.node_config = node_config
+
+    def set_mem_pic(self, mem_pic: MemPIC):
+        self.mem_pic = mem_pic
+
+    def run_cmd(self, env: ExpEnv) -> str | None:
+        
+        # /simbricks/sims/mem/pic/cpu_pic/cpu_pic 0 
+        # ../first-steps/out/basicmem-gk/1/dev.mem.host.0.host0 
+        # ../first-steps/out/basicmem-gk/1/dev.shm.host.0.host0 500000 
+        # ../first-steps/out/basicmem-gk/1/dev.mem.pic.0.pic0 500000 0 0
+        # TODO : this CMD is inconsistent for where SHM comes in, needs to be fixed
+        cmd = (
+            # TODO pic should not be a subfolder of mem
+            f'{env.repodir}/sims/mem/pic/cpu_pic/cpu_pic {self.as_id}'
+            f' {env.dev_mem_path(self)}'
+            f' {env.dev_shm_path(self)} {self.pic_latency} '
+            # TODO do a check and variable renaming because these latancies are all the same so if there is a bug we wouldn't have catched it 
+            f' {env.dev_mem_path(self.mem_pic)} {self.mem_pic.mem_latency} {self.sync_mode} {self.start_tick}'
+        )
+        return cmd
+    
+    def dependencies(self) -> tp.List[Simulator]:
+        # TODO this is good, but need to check if there are other places to add deps
+        # TODO also, not clean to make one PIC , which is a BasicMemDev right now, depend on another PIC, which is a BasicMemDev
+        return super().dependencies() + [self.mem_pic]
+
+    def full_name(self) -> str:
+        return 'pic.cpu.' + self.name
+
+class MemPIC(PIC):
+    # TODO the fact that we are hard coding one CPU PIC to MEM PIC and vice versa is not scalable and need to be changed
+    def __init__(self, node_config: NodeConfig, name: str):
+        super().__init__()
+        self.name = name
+        self.node_config = node_config
+
+    # TODO : assumes only one, needs to be fixed 
+    def set_mem_dev(self, mem_dev: BasicMemDev):
+        self.mem_dev = mem_dev
+
+    
+    def dependencies(self) -> tp.List[Simulator]:
+        # TODO this is good, but need to check if there are other places to add deps
+        # TODO also, not clean to make one PIC , which is a BasicMemDev right now, depend on another BasicMemDev
+        return super().dependencies() + [self.mem_dev]
+
+    def run_cmd(self, env: ExpEnv) -> str | None:
+        
+        # /simbricks/sims/mem/pic/mem_pic/mem_pic 0 
+        # ../first-steps/out/basicmem-gk/1/dev.mem.host.0.mem0 500000 
+        # ../first-steps/out/basicmem-gk/1/dev.mem.pic.0.pic0 
+        # ../first-steps/out/basicmem-gk/1/dev.shm.pic.0.pic0 500000 0 0
+
+        cmd = (
+            f'{env.repodir}/sims/mem/pic/mem_pic/mem_pic {self.as_id}'
+            f' {env.dev_mem_path(self.mem_dev)} {self.mem_dev.mem_latency}'
+            f' {env.dev_mem_path(self)}'
+            # TODO do a check and variable renaming because these latancies are all the same so if there is a bug we wouldn't have catched it 
+            f' {env.dev_shm_path(self)} {self.pic_latency} {self.sync_mode} {self.start_tick}'
+        )
+        return cmd
+    
+    def full_name(self) -> str:
+        return 'pic.mem.' + self.name
