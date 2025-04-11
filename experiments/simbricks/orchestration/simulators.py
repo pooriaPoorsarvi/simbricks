@@ -1239,6 +1239,11 @@ class QemuCPUNodeHost(CPUNodeWrapper, QemuHost):
         # TODO remove this if later on
 
         cmd = super().run_cmd(env)
+        # cmd = '/usr/lib/linux-tools/5.15.0-131-generic/perf record -F 99 -g -o perf.out -- ' + cmd 
+        # cmd += ' -icount shift=0 -plugin ./sims/external/qemu/build/contrib/plugins/libhotblocks.so '
+        # cmd += ' -icount shift=0 -plugin ./sims/external/qemu/build/contrib/plugins/libips.so '
+        cmd += ' -d plugin -plugin ./sims/external/qemu/build/contrib/plugins/libhotblocks.so '
+
         far_off_base = f' -far-off-memory {int(self.far_mem/(1024 * 1024))}M'
 
         if self.far_mem > 0 and not self.node_config.only_use_custom_memory:

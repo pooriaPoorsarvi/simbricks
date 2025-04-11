@@ -141,7 +141,7 @@ class Component(object):
         if self._proc.returncode is None:
             self._proc.kill()
 
-    async def int_term_kill(self, delay: int = 5) -> None:
+    async def int_term_kill(self, delay: int = 10) -> None:
         """Attempts to stop this component by sending signals in the following
         order: interrupt, terminate, kill."""
         await self.interrupt()

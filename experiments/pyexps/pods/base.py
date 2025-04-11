@@ -23,6 +23,10 @@ class MemTest(nodec.AppConfig):
 
     def run_cmds(self, node):
         main_command = ''
+        return [
+            'START=$(date +%s%3N); end=$(( $(date +%s) + 10 )); x=0; while [ "$(date +%s)" -lt "$end" ]; do dd if=/dev/mem bs=1G skip=15 count=1 status=progress | xxd | less; done; END=$(date +%s%3N); echo "Elapsed time: $((END - START)) ms"'
+        ]
+
         if not self.is_one_dd:
             # since bs is in 1G, the address difference is the count
             count = int(self.total_memory_gb - self.start_address)
@@ -125,7 +129,8 @@ def create_expermient(
     
     # Add host to experiment
     e.add_host(host)
-    
+    host.sync_mode = 1
+
     if use_far_off_memory_through_simbricks:
         assert only_use_custom_memory == False
 
@@ -142,6 +147,7 @@ def create_expermient(
         
         # Create memory device for far memory
         mem_device = sim.BasicMemDev()
+        # mem_device.sync_mode = 1
         mem_device.name = 'mem0'
         mem_device.addr = (node_config.memory * 1024 * 1024) - node_config.far_memory_size
         mem_device.size = node_config.far_memory_size
