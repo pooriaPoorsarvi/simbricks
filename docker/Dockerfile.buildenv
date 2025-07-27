@@ -58,15 +58,20 @@ RUN cd /tmp \
  && make -j`nproc` \
  && make install \
  && rm -rf /tmp/verilator
-RUN cd /tmp \
- && git clone https://github.com/apache/thrift.git \
- && cd thrift \
- && ./bootstrap.sh \
- && ./configure \
- && make -j`nproc` \
- && make install \
- && ldconfig \
- && rm -rf /tmp/thrift
+# RUN cd /tmp \
+#  && git clone https://github.com/apache/thrift.git \
+#  && cd thrift \
+#  && ./bootstrap.sh \
+#  && ./configure \
+#  && make -j`nproc` \
+#  && make install \
+#  && ldconfig \
+#  && rm -rf /tmp/thrift
+
+RUN apt update
+RUN apt install -y net-tools iproute2
+RUN apt install -y iputils-ping
+
 
 # Add non-root user for vs code devcontainer.
 ARG USERNAME=simbricks
